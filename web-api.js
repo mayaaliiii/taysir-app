@@ -78,22 +78,27 @@
     },
     async getExchangeRate(){
       const urls=['https://www.sp-today.com/currencies','https://allira-sy.com/currencies'];
-      for(const u of urls){
-        for(const f of [x=>x,x=>'https://api.allorigins.win/raw?url='+encodeURIComponent(x)]){
-          try{
-            const c=new AbortController(),t=setTimeout(()=>c.abort(),10000);
-            const r=await fetch(f(u),{signal:c.signal});clearTimeout(t);if(!r.ok)continue;
-            const text=(await r.text()).replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ');
-            const m=text.match(/USD\s*(?:دولار أمريكي)?\s*(?:137\.50|[0-9]{1,4}(?:\.[0-9]+)?)\s*(?:[0-9,]+\s*قديمة)?\s*(?:138\.25|[0-9]{1,4}(?:\.[0-9]+)?)/i);
-            if(!m)continue;
-            const v=(m[0].match(/[0-9]+(?:\.[0-9]+)?/g)||[]).map(Number).filter(n=>n>50&&n<1000);
-            if(v.length>=2)return{ok:true,buy:v[0],sell:v[1],value:v[1],source:'sp-today.com',fetchedAt:Date.now()};
-          }catch(_){}
-        }
+      const wrap=[x=>x,x=>'https://corsproxy.io/?url='+encodeURIComponent(x),x=>'https://api.allorigins.win/raw?url='+encodeURIComponent(x),x=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(x)];
+      for(const u of urls)for(const f of wrap){
+        try{
+          const c=new AbortController(),t=setTimeout(()=>c.abort(),9000);
+          const r=await fetch(f(u),{signal:c.signal});clearTimeout(t);if(!r.ok)continue;
+          const text=(await r.text()).replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ');
+          const re=/USD[^0-9]{0,40}([0-9]{2,4}(?:\.[0-9]+)?)[^0-9]{0,60}([0-9]{2,4}(?:\.[0-9]+)?)/gi;let m;
+          while((m=re.exec(text))){const b=+m[1],s=+m[2];if(b>=50&&s<=1000&&s>=b&&(s-b)/s<0.05)return{ok:true,buy:b,sell:s,value:s,source:'sp-today.com',fetchedAt:Date.now()};}
+        }catch(_){}
       }
-      return{ok:false,error:'تعذر جلب سعر الصرف حالياً. استخدم السعر اليدوي من الإعدادات.'};
+      return{ok:false,error:'تعذر جلب السعر تلقائياً. اضغط على بطاقة الدولار واكتب السعر يدوياً.'};
     }
   };
 
-  // لا نستبدل iframe الخاص بموقع الليرة اليوم؛ الواجهة الأصلية تتولى عرضه.
+  // الإطار (iframe) غالباً محظور في المتصفح → بطاقة سعر بسيطة بدلاً منه
+  document.addEventListener('DOMContentLoaded',()=>{
+    const f=document.getElementById('lyra-iframe');if(!f)return;
+    const d=document.createElement('div');d.className='rate-lite';
+    d.innerHTML='<span>الدولار اليوم</span><strong id="rate-lite-val">—</strong><small>ل.س / $</small>';
+    f.replaceWith(d);
+    const sync=()=>{const s=document.getElementById('exchange-top');const v=document.getElementById('rate-lite-val');if(s&&v)v.textContent=s.textContent;};
+    sync();setInterval(sync,1500);
+  });
 })();

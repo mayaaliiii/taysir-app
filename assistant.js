@@ -108,29 +108,7 @@
       const company = getState().companies.find(c => c.id === $('#ai-company').value); const logo = company?.logo || '';
       const photos = [...(upload ? [{ src: upload, label: 'صورتك المرفوعة', kind: 'photo' }] : []), ...libraryImages(name)];
       let images = [...photos];
-      // Gemini creates a product-photo variation from the actual brochure/product image.
-      // Slider controls, title, description and price remain native app UI, never part of the generated image.
-      const sourcePhoto = photos.find(p => p.kind === 'photo' && /^data:image\//i.test(p.src));
-      if (sourcePhoto && window.taysirAPI?.generateGeminiImage) {
-        const designPrompt = [
-          'Create a premium, photorealistic product showcase image based on the supplied source product photo.',
-          'Preserve the exact real product identity, shape, colors, count, packaging, labels, logos and visible text as faithfully as possible. Do not invent extra products or alter the product.',
-          'Place it in a luxury dark charcoal and warm black retail studio with elegant golden lighting, subtle reflections, and a round dark walnut wooden pedestal with a thin warm light ring.',
-          'A tasteful physical wall sign may say التيسير — مركز التيسير if it can be rendered cleanly; do not add any other text.',
-          'IMPORTANT: output the product scene only. No price, no product name caption, no UI, no cards, no buttons, no arrows, no pagination dots, no phone status bar, no watermark, no frame.',
-          'Portrait 4:5 composition, centered product, realistic commercial photography.'
-        ].join(' ');
-        const generated = await window.taysirAPI.generateGeminiImage({ image: sourcePhoto.src, prompt: designPrompt, aspect: '4:5' });
-        if (generated?.ok && generated.image) {
-          images.unshift({ src: generated.image, label: '✦ تصميم جديد من Gemini', kind: 'generated' });
-        } else if (generated?.error) {
-          toast('تعذّر توليد صورة جديدة من Gemini: ' + generated.error);
-        }
-      }
-      if (type === 'slider') {
-        const d = await makeDesigns(name, 'مختارات من التيسير — منتج عملي بتقديم بصري راقٍ.', photos[0]?.src || '', logo);
-        images = [...images, ...d];
-      }
+      if (type === 'slider') { const d = await makeDesigns(name, 'مختارات من التيسير — منتج عملي بتقديم بصري راقٍ.', photos[0]?.src || '', logo); images = [...d, ...photos]; }
       if (logo && type === 'product') images.push({ src: logo, label: 'شعار ' + company.name, kind: 'logo' });
       cur = { type, data: type === 'product' ? productSuggestion(name, info) : sliderSuggestion(name), images, sel: images.length ? 0 : -1, editing: false, logo, photoSrc: photos[0]?.src || '' };
       render();

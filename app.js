@@ -20,8 +20,6 @@
   let undoTimer = null;
   let selIds=new Set(), visibleIds=[];
   let cameraStream=null, cameraImage='';
-  const viewStack=['dashboard'];
-  let handlingPopState=false;
 
   function uid(prefix='id') { return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`; }
   function esc(value='') { return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
@@ -53,54 +51,24 @@
     return el;
   }
 
-  function navigate(view, opts={}) {
-    if(!document.querySelector(`#view-${view}`)) view='dashboard';
-    const current=document.querySelector('.view.active-view')?.id?.replace('view-','')||'dashboard';
-    if(view!==current && !opts.fromPop){
-      viewStack.push(view);
-      if(viewStack.length>30)viewStack.shift();
-      try{history.pushState({taysirView:view},'',`#${view}`);}catch(_){}
-    } else if(opts.fromPop && viewStack[viewStack.length-1]!==view){
-      const i=viewStack.lastIndexOf(view); if(i>=0)viewStack.splice(i+1); else viewStack.push(view);
-    }
+  function navigate(view) {
     $$('.view').forEach(v=>v.classList.remove('active-view'));
     $(`#view-${view}`)?.classList.add('active-view');
     $$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
-    const titles={dashboard:'الرئيسية',products:'البضاعة',invoices:'الفواتير',customers:'الزبائن',slider:'مختارات التيسير',companies:'الشركات',ai:'مساعد التيسير',settings:'الإعدادات'};
+    const titles={dashboard:'الرئيسية',products:'البضاعة',invoices:'الفواتير',customers:'الزبائن',slider:'السلايدر',companies:'الشركات',ai:'مساعد التيسير',settings:'الإعدادات'};
     $('#page-title').textContent=titles[view]||'';
-    const back=$('#app-back'); if(back)back.classList.toggle('is-hidden',view==='dashboard');
     if(view==='dashboard') renderHomeFeatures();
   }
-  function goBackInsideApp(){
-    const current=document.querySelector('.view.active-view')?.id?.replace('view-','')||'dashboard';
-    if(current==='dashboard'){toast('أنتِ بالصفحة الرئيسية.');return;}
-    if(viewStack.length>1)viewStack.pop();
-    const target=viewStack[viewStack.length-1]||'dashboard';
-    handlingPopState=true;
-    try{history.back();}catch(_){}
-    navigate(target,{fromPop:true});
-    handlingPopState=false;
-  }
-  try{history.replaceState({taysirView:'dashboard'},'',location.pathname+location.search+'#dashboard');}catch(_){}
-  window.addEventListener('popstate',e=>{
-    if(handlingPopState)return;
-    const target=e.state?.taysirView;
-    if(target && document.querySelector(`#view-${target}`))navigate(target,{fromPop:true});
-    else {try{history.pushState({taysirView:'dashboard'},'',`${location.pathname}${location.search}#dashboard`);}catch(_){} navigate('dashboard',{fromPop:true});toast('رجعناك للرئيسية حتى ما ينسكر التطبيق بالغلط.');}
-  });
-  $('#app-back')?.addEventListener('click',goBackInsideApp);
 
   function armSlideControls(root){ if(!root) return; clearTimeout(root.__controlsTimer); root.classList.remove('controls-dim'); root.__controlsTimer=setTimeout(()=>root.classList.add('controls-dim'),1000); root.querySelectorAll('[data-sl],[data-carousel-dir],[data-carousel-index]').forEach(b=>b.addEventListener('click',()=>{root.classList.remove('controls-dim');clearTimeout(root.__controlsTimer);root.__controlsTimer=setTimeout(()=>root.classList.add('controls-dim'),1000);})); }
 
   function renderHomeFeatures(){
     const hd=$('#home-date'); if(hd) hd.textContent=new Date().toLocaleDateString('en-GB');
-    const rateFrame=$('#lyra-iframe');
     const slides=[...state.slides].sort((a,b)=>(a.order||0)-(b.order||0)); const root=$('#home-slider');
-    if(!slides.length){root.innerHTML='<div class="empty">لا توجد مختارات بعد. أضف أول شريحة من قسم مختارات التيسير.</div>';return;}
+    if(!slides.length){root.innerHTML='<div class="empty">لا توجد مختارات بعد. أضف أول شريحة من قسم فاترينة التيسير.</div>';return;}
     const s=slides[(Number(root.dataset.index)||0) % slides.length]||slides[0], pr=state.products.find(x=>x.id===s.productId);
-    root.innerHTML=`<div class="slide-live">${s.image?`<img class="slide-live-bg" src="${s.image}" alt=""><img class="slide-live-main" src="${s.image}" alt="">`:'<div class="empty" style="height:100%;display:grid;place-items:center">📦 لا توجد صورة</div>'}<div class="taysir-watermark">التيسير</div><button class="sl-arrow sl-r" data-sl="-1" aria-label="السابق">›</button><button class="sl-arrow sl-l" data-sl="1" aria-label="التالي">‹</button><div class="sl-bottom"><span class="sl-pill sl-name">${esc(s.title||'—')}</span>${pr?`<span class="sl-pill sl-price">$${money(pr.priceUsd)}</span>`:''}<span class="sl-pill sl-desc">${esc(s.subtitle||'')}</span></div></div><div class="home-slider-dots" aria-label="التنقل بين المختارات">${slides.map((_,i)=>`<button type="button" data-home-dot="${i}" class="${i===((Number(root.dataset.index)||0)%slides.length)?'active':''}" aria-label="المختار ${i+1}"></button>`).join('')}</div>`;
+    root.innerHTML=`<div class="slide-live">${s.image?`<img class="slide-live-bg" src="${s.image}" alt=""><img class="slide-live-main" src="${s.image}" alt="">`:'<div class="empty" style="height:100%;display:grid;place-items:center">📦 لا توجد صورة</div>'}<div class="taysir-watermark">التيسير</div><button class="sl-pill sl-top" data-go="slider">✦ فاترينة التيسير</button><button class="sl-arrow sl-r" data-sl="-1" aria-label="السابق">›</button><button class="sl-arrow sl-l" data-sl="1" aria-label="التالي">‹</button><div class="sl-bottom"><span class="sl-pill sl-name">${esc(s.title||'—')}</span>${pr?`<span class="sl-pill sl-price">$${money(pr.priceUsd)}</span>`:''}<span class="sl-pill sl-desc">${esc(s.subtitle||'')}</span></div></div>`;
     root.querySelectorAll('[data-sl]').forEach(b=>b.onclick=e=>{e.stopPropagation();root.dataset.index=(((Number(root.dataset.index)||0)+Number(b.dataset.sl))%slides.length+slides.length)%slides.length;renderHomeFeatures();});
-    root.querySelectorAll('[data-home-dot]').forEach(b=>b.onclick=()=>{root.dataset.index=Number(b.dataset.homeDot);renderHomeFeatures();});
     armSlideControls(root);
     if(!window.__slTimer)window.__slTimer=setInterval(()=>{const r=$('#home-slider');if(r&&state.slides.length>1&&document.visibilityState==='visible'){r.dataset.index=((Number(r.dataset.index)||0)+1)%state.slides.length;renderHomeFeatures();}},7000);
   }
@@ -142,7 +110,7 @@
   function sourceImageFor(p){ return p?.sourceImage || (p?.sourcePageId ? (state.sourcePages?.[p.sourcePageId]||'') : '') || p?.image || ''; }
   function geminiPrompt(p, variation, type='product'){
     const company=queueCompanyFor(p); const brand=company?.name||'مركز التيسير';
-    return `Create a premium commercial product photograph for مركز التيسير. The input may be a page or image taken from a product flyer/catalog. Use it as the source of truth, focus on the exact product pictured (not the whole flyer/page), and create a newly art-directed product photograph rather than returning the input unchanged. Identify the exact product named "${p.name}" from the reference and preserve its packaging, proportions, colors, label, logo, and visible product details without inventing or replacing the product. Place it on an elegant warm wooden table/pedestal with cinematic soft lighting, realistic shadows, subtle black, white and gold brand styling, and a sophisticated softly blurred background inspired by a premium modern retail center. The brand atmosphere should feel like "${brand}" and "التيسير" without covering or changing the product label. ${variation}. IMPORTANT: output ONLY the clean product photograph. The app slider will add the real product name, description, gold price capsule, arrows, and pagination dots separately. Do NOT include any of those elements in the generated image. Do NOT include a phone frame, status bar, time, battery, Wi‑Fi, navigation arrows, carousel dots, buttons, UI, price card, or text overlays.`;
+    return `Create a premium commercial product photograph for مركز التيسير. Use the provided product/reference image as the source of truth. Identify the exact product named "${p.name}" from the reference and preserve its packaging, proportions, colors, label, logo, and visible product details without inventing or replacing the product. Place it on an elegant warm wooden table/pedestal with cinematic soft lighting, realistic shadows, subtle black, white and gold brand styling, and a sophisticated softly blurred background inspired by a premium modern retail center. The brand atmosphere should feel like "${brand}" and "التيسير" without covering or changing the product label. ${variation}. IMPORTANT: output ONLY the clean product photograph. Do NOT include a phone frame, status bar, time, battery, Wi‑Fi, navigation arrows, carousel dots, buttons, UI, price card, or text overlays.`;
   }
   async function generateProductImage(p, variation='', type='product'){
     const src=sourceImageFor(p); if(!src) return {ok:false,error:'هذا المنتج لا يملك صورة مصدر من النشرة/المكتبة بعد.'};
@@ -159,7 +127,7 @@
     root.innerHTML=top+q.map(item=>{
       const d=item.data||{}; const fields=Object.entries(d).map(([k,v])=>item.editing?`<label>${esc(k)}<textarea rows="2" data-queue-field="${item.id}" data-field="${esc(k)}">${esc(v)}</textarea></label>`:`<p><b>${esc(k)}:</b> ${esc(v)}</p>`).join('');
       const img=item.image||sourceImageFor(item.product);
-      return `<article class="review-card" data-review-id="${item.id}"><div class="review-media">${img?`<img src="${img}" alt="${esc(item.product?.name||'')}">`:'<div class="empty">بانتظار تصميم صورة المنتج من صورة النشرة</div>'}</div><div class="review-copy"><div class="review-head"><div><span class="section-kicker">${item.type==='slider'?'فكرة سلايدر':'اقتراح منتج'}</span><h4>${esc(item.product?.name||'منتج')}</h4></div><span class="review-status">قيد المراجعة</span></div>${fields}<div class="review-actions"><button class="primary-btn" data-review-approve="${item.id}" type="button">✓ اعتماد</button><button class="secondary-btn" data-review-edit="${item.id}" type="button">${item.editing?'💾 حفظ التعديل':'✎ تعديل'}</button><button class="secondary-btn" data-review-redesign="${item.id}" type="button">✨ إعادة تصميم الصورة</button><button class="secondary-btn" data-review-add-slide="${item.id}" type="button">＋ إضافة للسلايدر</button><button class="secondary-btn danger-text" data-review-reject="${item.id}" type="button">✕ رفض</button></div></div></article>`;
+      return `<article class="review-card" data-review-id="${item.id}"><div class="review-media">${img?`<img src="${img}" alt="${esc(item.product?.name||'')}">`:'<div class="empty">لا توجد صورة مصدر</div>'}</div><div class="review-copy"><div class="review-head"><div><span class="section-kicker">${item.type==='slider'?'فكرة سلايدر':'اقتراح منتج'}</span><h4>${esc(item.product?.name||'منتج')}</h4></div><span class="review-status">قيد المراجعة</span></div>${fields}<div class="review-actions"><button class="primary-btn" data-review-approve="${item.id}" type="button">✓ اعتماد</button><button class="secondary-btn" data-review-edit="${item.id}" type="button">${item.editing?'💾 حفظ التعديل':'✎ تعديل'}</button><button class="secondary-btn" data-review-redesign="${item.id}" type="button">✨ إعادة تصميم الصورة</button><button class="secondary-btn" data-review-add-slide="${item.id}" type="button">＋ إضافة للسلايدر</button><button class="secondary-btn danger-text" data-review-reject="${item.id}" type="button">✕ رفض</button></div></div></article>`;
     }).join('');
   }
   function suggestionKey(s,p){ return `${p?.id||s.productId}|${String(s.title||'').trim()}|${String(s.description||'').trim()}|${String(s.imageDirection||'').trim()}`.toLowerCase(); }
@@ -200,7 +168,7 @@
   async function redesignReview(id){
     const item=(state.reviewQueue||[]).find(x=>x.id===id); if(!item)return; const btn=$(`[data-review-redesign="${id}"]`); if(btn){btn.disabled=true;btn.textContent='⏳ جاري التصميم…';}
     const p=item.product; const variation=['إضاءة أكثر دفئاً مع انعكاس ذهبي خفيف.','زاوية تصوير مختلفة مع خلفية سوداء ناعمة.','مشهد أكثر فخامة مع خشب طبيعي وإضاءة استوديو.'][Math.floor(Math.random()*3)];
-    const r=await generateProductImage(p,variation,item.type==='slider'?'slider':'product'); if(r.ok){item.image=r.image;await persist();renderAIQueue();toast('تمت إعادة تصميم الصورة.');}else{if(btn){btn.disabled=false;btn.textContent='✨ إعادة تصميم الصورة';}toast(r.error);}
+    const r=await generateProductImage(p,variation); if(r.ok){item.image=r.image;await persist();renderAIQueue();toast('تمت إعادة تصميم الصورة.');}else{if(btn){btn.disabled=false;btn.textContent='✨ إعادة تصميم الصورة';}toast(r.error);}
   }
   function renderAISuggestion(data,title,kind,prods){ const p=prods?.[0]; if(p){addQueueItem({id:uid('review'),type:kind,data:{...data},product:p,image:'',editing:false,status:'pending'});renderAIQueue();persist();} }
 
@@ -253,7 +221,7 @@
     const slides=[...state.slides].sort((a,b)=>(a.order||0)-(b.order||0));
     if(!slides.length){root.innerHTML='<div class="carousel-empty">أضف أول شريحة لتظهر هنا</div>';return;}
     let idx=Math.max(0,Math.min(Number(root.dataset.index)||0,slides.length-1));root.dataset.index=idx;const s=slides[idx];
-    root.innerHTML=`<div class="carousel-shell"><div class="carousel-visual">${s.image?`<img class="carousel-bg" src="${s.image}" alt=""><img class="carousel-main" src="${s.image}" alt="${esc(s.title||'')}" loading="lazy">`:'<div class="carousel-empty">لا توجد صورة</div>'}<div class="taysir-watermark">التيسير</div><button class="carousel-arrow right" type="button" data-carousel-dir="-1" aria-label="السابق">‹</button><button class="carousel-arrow left" type="button" data-carousel-dir="1" aria-label="التالي">›</button></div><div class="carousel-info"><span class="section-kicker">مختارات التيسير</span><h2>${esc(s.title||'بدون عنوان')}</h2><p>${esc(s.subtitle||'أضف وصفاً قصيراً للشريحة')}</p><div class="carousel-meta"><span>${idx+1} / ${slides.length}</span><span>${s.productId?'مرتبط بمنتج':'شريحة مستقلة'}</span></div><div class="carousel-dots">${slides.map((_,i)=>`<button type="button" class="${i===idx?'active':''}" data-carousel-index="${i}" aria-label="الشريحة ${i+1}"></button>`).join('')}</div></div></div>`;
+    root.innerHTML=`<div class="carousel-shell"><div class="carousel-visual">${s.image?`<img class="carousel-bg" src="${s.image}" alt=""><img class="carousel-main" src="${s.image}" alt="${esc(s.title||'')}" loading="lazy">`:'<div class="carousel-empty">لا توجد صورة</div>'}<div class="taysir-watermark">التيسير</div><button class="carousel-arrow right" type="button" data-carousel-dir="-1" aria-label="السابق">‹</button><button class="carousel-arrow left" type="button" data-carousel-dir="1" aria-label="التالي">›</button></div><div class="carousel-info"><span class="section-kicker">فاترينة التيسير</span><h2>${esc(s.title||'بدون عنوان')}</h2><p>${esc(s.subtitle||'أضف وصفاً قصيراً للشريحة')}</p><div class="carousel-meta"><span>${idx+1} / ${slides.length}</span><span>${s.productId?'مرتبط بمنتج':'شريحة مستقلة'}</span></div><div class="carousel-dots">${slides.map((_,i)=>`<button type="button" class="${i===idx?'active':''}" data-carousel-index="${i}" aria-label="الشريحة ${i+1}"></button>`).join('')}</div></div></div>`;
     armSlideControls(root);
   }
   function renderSlides(){
@@ -263,7 +231,7 @@
 
   function renderSettings(){
     if($('#setting-manager-name')) $('#setting-manager-name').value=state.managerName||'';
-    $('#undo-delete').checked=!!state.undoDelete;
+    $('#setting-exchange').value=state.exchangeRate||''; $('#exchange-source').textContent=state.exchangeFetchedAt?'تحديث تلقائي: '+new Date(state.exchangeFetchedAt).toLocaleTimeString('en-US'):'لم يتم التحديث التلقائي بعد'; $('#setting-direction').value=state.direction; $('#undo-delete').checked=!!state.undoDelete;
     const b=state.business||{}; $('#setting-address').value=b.address||''; $('#setting-orders-open').value=b.ordersOpen||'09:00'; $('#setting-orders-close').value=b.ordersClose||'18:00';
     [['sham-cash','shamCashBarcode'],['channel','channelBarcode']].forEach(([k,key])=>{const el=$(`#setting-${k}-barcode`); if(el) el.value=''; const p=$(`#${k}-barcode-preview`); if(p){p.src=b[key]||'';p.style.display=b[key]?'block':'none';}});
     $('#contacts-list').innerHTML=state.contacts.map((c,i)=>`<div class="contact-row"><input data-contact-name="${i}" placeholder="اسم صاحب الرقم" value="${esc(c.name)}"><input data-contact-phone="${i}" placeholder="رقم الهاتف" value="${esc(c.phone)}"><button class="remove-row" data-remove-contact="${i}">×</button></div>`).join('');
@@ -370,7 +338,7 @@
   });
 
 
-  $('#home-refresh-exchange').onclick=()=>{const frame=$('#lyra-iframe');if(frame){try{frame.src='https://www.sp-today.com/currencies?refresh='+Date.now();}catch(_){frame.src='https://www.sp-today.com/currencies';}}};
+  $('#home-refresh-exchange').onclick=()=>{refreshExchangeRate(false);const f=$('#lyra-iframe');f.src=f.src;};
   $('#add-company-btn').onclick=()=>openCompanyModal();
   $('#ai-suggest-product').onclick=()=>createReviewSuggestions('product');
   $('#ai-suggest-slider').onclick=()=>createReviewSuggestions('slider');
@@ -451,7 +419,7 @@ const VOCAB=new Set("بخاخة ماء ملونة محجرة مدورة سعة �
     const existingNames=new Set(state.products.map(p=>normalizePdfText(p.name).toLowerCase())),existingCodes=new Set(state.products.map(p=>normalizePdfText(p.code).toLowerCase()).filter(Boolean));rows.forEach(r=>{r.duplicate=existingNames.has(normalizePdfText(r.name).toLowerCase())||(r.code&&existingCodes.has(normalizePdfText(r.code).toLowerCase()));if(r.duplicate)r.selected=false;else if(r.selected===undefined)r.selected=!r.uncertain;});
     const html=rows.map((r,i)=>`<tr data-r="${i}" class="${r.uncertain?'ocr-warn':''} ${r.duplicate?'dup':''}"><td><input type="checkbox" name="ok" ${r.selected?'checked':''}></td><td>${r.page}</td><td>${r.sourceImage?`<img class="ocr-product-page product-crop" src="${r.sourceImage}" alt="صورة المنتج">`:'—'}</td><td>${r.rowImage?`<img class="ocr-row-img" src="${r.rowImage}" alt="الصف الأصلي">`:'—'}</td><td><input name="name" value="${esc(r.name)}"></td><td><input name="code" value="${esc(r.code)}" dir="ltr"></td><td><input name="usd" type="number" step="0.01" min="0" value="${r.priceUsd||''}" dir="ltr"></td><td>${r.duplicate?'<span class="ocr-badge dup">موجود مسبقاً</span>':r.uncertain?`<span class="ocr-badge" title="${esc(r.note||'')}">راجع ${r.note?esc(r.note):(r.conf||'')+'%'}</span>`:'<span class="ocr-badge ok">✓</span>'}</td><td><button type="button" class="small-btn" data-ocr-review="${i}">مراجعة</button></td></tr>`).join('');
     modal({title:'مراجعة نشرة الأسعار',subtitle:`تم استخراج ${rows.length} منتج. الصور المعروضة هي قصاصات من خانة صورة المنتج، وليس صفحات كاملة. راجع الأسماء المعلّمة قبل الاعتماد.`,submitText:'اعتماد المحدد وإضافة المنتجات',body:`<div class="ocr-select-actions"><button type="button" class="secondary-btn" id="pdf-select-all">☑ تحديد الكل</button><button type="button" class="secondary-btn" id="pdf-select-none">☐ إلغاء تحديد الكل</button></div><div class="ocr-summary" id="pdf-summary"></div><div class="ocr-results"><table class="invoice-table ocr-table"><thead><tr><th><input type="checkbox" id="pdf-all"></th><th>ص</th><th>صورة المنتج</th><th>الصف الأصلي</th><th>الاسم</th><th>الكود</th><th>السعر $</th><th>الحالة</th><th>التدقيق</th></tr></thead><tbody id="pdf-review-body">${html}</tbody></table></div>`,onSubmit:async form=>{const selected=[];$$('#pdf-review-body tr',form).forEach(row=>{if(!$('[name=ok]',row).checked)return;const r=rows[Number(row.dataset.r)];r.name=$('[name=name]',row).value.trim();r.code=$('[name=code]',row).value.trim();r.priceUsd=Number($('[name=usd]',row).value)||0;if(r.name&&r.priceUsd>0)selected.push(r);});if(!selected.length)throw new Error('حدّد منتجاً صالحاً واحداً على الأقل.');const company=await new Promise(resolve=>modal({title:'تحديد الشركة أو العلامة التجارية',subtitle:`تم تحليل ${selected.length} منتج. حدّد الشركة أو العلامة التجارية التي تتبع لها هذه المنتجات.`,submitText:'متابعة',body:`<label>الشركة أو العلامة التجارية<input name="company" list="co-list" placeholder="مثال: اسم الشركة" required><datalist id="co-list">${state.companies.map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist></label>`,onSubmit:async f=>{const v=String(new FormData(f).get('company')).trim();if(!v)throw new Error('اكتب اسم الشركة أو العلامة التجارية.');closeModal();resolve(v);}}));const now=Date.now(),added=selected.map((r,i)=>({id:uid('prod'),name:r.name,code:r.code||'',category:company,company,priceUsd:r.priceUsd,priceSyp:state.exchangeRate?Math.round(r.priceUsd*state.exchangeRate):0,description:'',image:r.sourceImage||'',sourceImage:r.sourceImage||'',sourceFile:file.name,sourcePage:r.page,sourceConfidence:r.conf||100,createdAt:now+i,updatedAt:now+i}));state.products.push(...added);if(!state.companies.some(c=>c.name===company))state.companies.push({id:uid('company'),name:company,info:'',logo:''});await persist();closeModal();renderAll();toast(`تمت إضافة ${added.length} منتج ✓`);}});
-    $('.modal')?.classList.add('wide','pdf-review-modal');
+    $('.modal')?.classList.add('wide');
     $$('#pdf-review-body [data-ocr-review]').forEach(btn=>btn.onclick=()=>{
       const r=rows[Number(btn.dataset.ocrReview)]; if(!r)return;
       modal({title:'مراجعة نتيجة OCR',subtitle:`الصفحة ${r.page||'—'} — تأكد من الاسم والكود والسعر قبل الاعتماد.`,submitText:'حفظ التصحيح',body:`<div class="ocr-focus-review">${r.rowImage?`<img src="${r.rowImage}" alt="الصف الأصلي" class="ocr-review-image">`:''}<div class="form-grid"><label>اسم المنتج<input name="name" value="${esc(r.name||'')}"></label><label>الكود<input name="code" value="${esc(r.code||'')}" inputmode="numeric" dir="ltr"></label><label>السعر بالدولار<input name="usd" type="number" step="0.01" min="0" value="${r.priceUsd||''}" inputmode="decimal" dir="ltr"></label></div><p class="muted">ملاحظة OCR: ${esc(r.note||'النتيجة تبدو مستقرة')}</p></div>`,onSubmit:async f=>{const d=new FormData(f),name=String(d.get('name')||'').trim(),code=String(d.get('code')||'').trim(),price=Number(d.get('usd'))||0;if(!name||!code||price<=0)throw new Error('تأكد من الاسم والكود والسعر.');r.name=name;r.code=code;r.priceUsd=price;r.uncertain=false;r.note='تمت مراجعته يدوياً';r.conf=100;closeModal();pdfRowsReview(file,rows);}});
@@ -464,11 +432,12 @@ const VOCAB=new Set("بخاخة ماء ملونة محجرة مدورة سعة �
   $('#pdf-file-input').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{openPdfOptions(f);}catch(_){ }finally{e.target.value='';}};
 
   $('#product-search').addEventListener('input',renderProducts);
-  $('#settings-form').addEventListener('submit',async e=>{e.preventDefault();const mn=String($('#setting-manager-name')?.value||'').trim();if(mn.length<2){toast('اسم المدير مطلوب.');return;}state.managerName=mn;
+  $('#settings-form').addEventListener('submit',async e=>{e.preventDefault();const mn=String($('#setting-manager-name')?.value||'').trim();if(mn.length<2){toast('اسم المدير مطلوب.');return;}state.managerName=mn;state.exchangeRate=Number($('#setting-exchange').value)||0;state.direction=$('#setting-direction').value;state.exchangeManual=true;
     state.business=Object.assign({},state.business,{address:$('#setting-address').value.trim(),ordersOpen:$('#setting-orders-open').value||'09:00',ordersClose:$('#setting-orders-close').value||'18:00'});
     for(const [id,key] of [['sham-cash','shamCashBarcode'],['channel','channelBarcode']]){const f=$(`#setting-${id}-barcode`)?.files?.[0]; if(f) state.business[key]=await fileToDataUrl(f);}
-    await persist();renderStats();renderDashboard();renderHomeFeatures();toast('تم حفظ إعدادات المركز.');});
+    await persist();renderStats();renderDashboard();toast('تم حفظ إعدادات المركز.');});
   $('#undo-delete').addEventListener('change',async e=>{state.undoDelete=e.target.checked;await persist();});
+  $('#refresh-exchange').addEventListener('click',()=>refreshExchangeRate(false));
   $('#add-contact').onclick=()=>{state.contacts.push({name:'',phone:''});renderSettings();};
   $('#add-group').onclick=()=>{state.groups.push({name:'',url:''});renderSettings();};
   $('#save-links').onclick=async()=>{state.contacts=state.contacts.map((c,i)=>({name:$(`[data-contact-name="${i}"]`)?.value.trim()||'',phone:$(`[data-contact-phone="${i}"]`)?.value.trim()||''})).filter(x=>x.name||x.phone);state.groups=state.groups.map((g,i)=>({name:$(`[data-group-name="${i}"]`)?.value.trim()||'',url:$(`[data-group-url="${i}"]`)?.value.trim()||''})).filter(x=>x.name||x.url);await persist();renderSettings();toast('تم حفظ أرقام التواصل وروابط المجموعات.');};
@@ -481,7 +450,7 @@ const VOCAB=new Set("بخاخة ماء ملونة محجرة مدورة سعة �
   $('#bulk-delete').onclick=async()=>{ if(!selIds.size){toast('حدّد منتجات أولاً.');return;} if(!confirm(`حذف ${selIds.size} منتج؟`))return; state.products=state.products.filter(x=>!selIds.has(x.id)); state.slides=state.slides.filter(x=>!selIds.has(x.productId)); selIds.clear(); await persist(); renderAll(); toast('تم الحذف.'); };
 
   async function refreshExchangeRate(silent=false){
-    if(!window.taysirAPI?.getExchangeRate){ return; }
+    if(!window.taysirAPI?.getExchangeRate) return; if(silent&&state.exchangeManual) return;
     try{ const r=await window.taysirAPI.getExchangeRate(); if(r.ok){ const old=Number(state.exchangeRate)||0; state.exchangeRate=r.value; state.exchangeBuy=r.buy; state.exchangeSell=r.sell; state.exchangeFetchedAt=r.fetchedAt; state.exchangeSource=r.source; state.exchangeManual=false; state.direction=old? (r.value>old?'up':r.value<old?'down':'flat') : 'flat'; await persist(); renderStats(); renderSettings(); renderCarousel(); if(!silent) toast(`تم تحديث سعر الصرف تلقائياً: ${money(r.value)} ل.س`); } else if(!silent) toast(r.error); }catch(e){ if(!silent) toast('تعذر تحديث سعر الصرف حالياً.'); }
   }
 

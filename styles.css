@@ -163,4 +163,3 @@ body:not(.authed) .app-shell{visibility:hidden}
 .slide-live.controls-dim .sl-arrow, .slide-live.controls-dim .taysir-watermark { opacity:0 !important; pointer-events:none !important; }
 #slider-preview.controls-dim .carousel-arrow, #slider-preview.controls-dim .taysir-watermark,
 #home-slider.controls-dim .sl-arrow, #home-slider.controls-dim .taysir-watermark { opacity:0 !important; pointer-events:none !important; }
-/* The live SP-Today iframe is intentionally enabled. */
