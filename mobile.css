@@ -1,0 +1,111 @@
+/* تحسينات الموبايل — تُحمَّل بعد styles.css */
+html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+body{-webkit-tap-highlight-color:transparent;padding-top:env(safe-area-inset-top)}
+input,select,textarea{font-size:16px!important}
+button,.nav-item,.small-btn,.text-btn{touch-action:manipulation}
+.rate-lite{display:grid;gap:4px;justify-items:center;padding:22px 16px;color:#fff;background:#0f172a}
+.rate-lite span{font-size:12px;opacity:.75}
+.rate-lite strong{font-size:34px;color:#f6dc9a;direction:ltr}
+.rate-lite small{font-size:11px;opacity:.6}
+.rate-only .rate-head{padding:16px 16px 0}
+.rate-iframe-head{padding:10px 16px}
+@media(max-width:820px){
+  .modal-backdrop{align-items:end!important;padding:0!important}
+  .modal{width:100vw!important;max-height:94dvh!important;border-radius:26px 26px 0 0!important;padding-bottom:calc(24px + env(safe-area-inset-bottom))!important}
+  .modal-actions{flex-wrap:wrap}.modal-actions button{flex:1 1 45%;min-height:46px}
+  .primary-btn,.secondary-btn{min-height:46px}
+  .head-actions{width:100%}.head-actions button{flex:1}
+  .toolbar .search-box input{min-height:46px}
+  .filter-row{overflow-x:auto;flex-wrap:nowrap!important;scrollbar-width:none}.filter-row>*{flex:0 0 auto}
+  .topbar{position:sticky;top:0;z-index:20;padding-top:8px;background:rgba(11,11,12,.85);backdrop-filter:blur(14px)}
+}
+
+/* Mobile polish: navigation, compact dashboard and scroll-safe dialogs */
+html,body{min-height:100%;overscroll-behavior-y:auto}
+body{overflow-y:auto}
+.topbar-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.topbar-eyebrow{font-size:10px;letter-spacing:.1px;opacity:.72}
+.app-back{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:7px 11px;border:1px solid rgba(255,255,255,.14);border-radius:13px;color:#f5dfaa;background:rgba(255,255,255,.06);font-size:12px;white-space:nowrap}
+.app-back.is-hidden{visibility:hidden;pointer-events:none}
+.home-bar{padding:7px 13px!important;font-size:10px!important;opacity:.82}
+.home-title{font-size:clamp(27px,4vw,42px)!important;margin:-28px 0 7px!important}
+.topbar h1{font-size:clamp(18px,3vw,24px)!important}
+.eyebrow{font-size:10px!important}
+.rate-only{display:flex;flex-direction:column;justify-content:center;gap:9px;padding:13px!important;min-width:0;background:linear-gradient(145deg,rgba(24,48,59,.95),rgba(13,19,25,.98))!important;border:1px solid rgba(217,181,106,.22)!important;border-radius:22px!important;overflow:hidden}
+.rate-mini-head{display:flex;align-items:center;gap:8px;min-width:0}
+.rate-mini-icon{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:12px;background:rgba(217,181,106,.13);border:1px solid rgba(217,181,106,.22);color:var(--gold2);font-size:10px;font-weight:800}
+.rate-mini-head .section-kicker{display:block;font-size:11px;white-space:nowrap}
+.rate-mini-head small{display:block;color:#a8b4bd;font-size:9px;margin-top:3px}
+.rate-mini-value{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rate-mini-value strong{font-size:clamp(18px,2.6vw,28px);color:#f6dc9a;direction:ltr;text-align:right;overflow-wrap:anywhere;line-height:1.2}
+.rate-mini-value span{font-size:10px;color:#bdc7ce}
+.rate-mini-foot{display:flex;align-items:center;justify-content:space-between;gap:5px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px}
+.rate-mini-foot small{font-size:9px;line-height:1.5;color:#9eabb4}
+.rate-mini-action{width:29px;height:29px;flex:0 0 29px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#f6dc9a;font-size:18px}
+.rate-settings-link{background:transparent;border:0;color:#f0d28a;text-align:right;font-size:10px;padding:2px 0;white-space:normal}
+.home-slider.panel{min-width:0;padding:13px!important}
+.home-slider .panel-head{margin-bottom:10px!important;gap:6px}
+.home-slider .panel-head h3{font-size:13px!important;line-height:1.4}
+.home-slider .panel-head .section-kicker{font-size:9px!important}
+.home-slider .panel-head .text-btn{font-size:10px;white-space:nowrap}
+.home-slider-stage{min-height:0!important;height:250px!important}
+.home-slider-stage .slide-live{height:250px!important;border-radius:17px!important}
+.home-slider-stage .sl-top{display:none!important}
+.sl-bottom{left:9px!important;right:9px!important;bottom:9px!important;gap:5px!important}
+.sl-pill{font-size:10px!important;padding:6px 9px!important;max-width:100%;overflow-wrap:anywhere}
+.sl-name{font-size:11px!important}
+.sl-desc{font-size:9px!important}
+.sl-arrow{width:34px!important;height:34px!important;font-size:21px!important}
+.modal-backdrop{align-items:flex-start!important;justify-items:center;overflow-y:auto!important;overscroll-behavior:contain;padding:8px 8px calc(12px + env(safe-area-inset-bottom))!important}
+.modal{width:min(760px,100%)!important;max-height:calc(100dvh - 16px)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:17px!important;margin:0!important}
+.modal form{min-width:0}
+.modal-actions{position:sticky;bottom:-17px;z-index:5;padding:12px 0 calc(6px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(17,17,19,.9),#111113 28%);flex-wrap:wrap}
+.modal-actions button{min-height:44px}
+.pdf-review-modal{width:min(1100px,100%)!important}
+.ocr-results{max-height:none!important;overflow:visible!important;max-width:100%;overscroll-behavior:contain}
+.ocr-table{min-width:760px}
+.pdf-review-modal .ocr-results{overflow-x:auto!important;max-height:55dvh!important;overflow-y:auto!important}
+@media(max-width:820px){
+  .topbar{align-items:center!important;gap:8px!important;margin-bottom:15px!important}
+  .topbar-title-wrap{gap:7px}
+  .topbar-eyebrow{display:none}
+  .topbar h1{font-size:18px!important}
+  .top-actions{gap:5px}
+  .top-actions .exchange-pill{display:none!important}
+  .dashboard-duo{grid-template-columns:minmax(112px,.72fr) minmax(0,1.28fr)!important;gap:8px!important;align-items:stretch}
+  .rate-only{padding:10px!important;border-radius:18px!important}
+  .rate-mini-icon{flex-basis:30px;height:30px;font-size:9px}
+  .rate-mini-head .section-kicker{font-size:10px}
+  .rate-mini-head small{font-size:8px}
+  .rate-mini-value strong{font-size:clamp(15px,4vw,22px)}
+  .rate-mini-value span,.rate-mini-foot small,.rate-settings-link{font-size:8px}
+  .home-slider.panel{padding:10px!important}
+  .home-slider-stage,.home-slider-stage .slide-live{height:250px!important}
+  .home-head{margin-bottom:12px!important}
+  .home-title{margin:-18px 0 6px!important;font-size:31px!important}
+  .home-bar{padding:6px 10px!important;font-size:9px!important}
+  .main-content{padding:12px 10px calc(108px + env(safe-area-inset-bottom))!important}
+  .modal-backdrop{padding:5px 5px calc(8px + env(safe-area-inset-bottom))!important}
+  .modal{max-height:calc(100dvh - 10px)!important;padding:14px!important;border-radius:22px!important}
+  .modal-actions{bottom:-14px}
+  .pdf-review-modal .ocr-results{max-height:52dvh!important}
+}
+@media(max-width:370px){
+  .dashboard-duo{grid-template-columns:1fr!important}
+  .rate-only{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+  .rate-mini-head{grid-column:1}
+  .rate-mini-value{grid-column:2;grid-row:1 / span 2}
+  .rate-mini-foot,.rate-settings-link{grid-column:1}
+  .rate-mini-value strong{font-size:20px}
+  .home-slider-stage,.home-slider-stage .slide-live{height:245px!important}
+}
+.home-slider-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:9px 0 1px;min-height:18px}
+.home-slider-dots button{width:6px;height:6px;border:0;border-radius:999px;padding:0;background:rgba(255,255,255,.28);transition:width .2s,background .2s}
+.home-slider-dots button.active{width:19px;background:#e8c66e}
+
+/* Restore the live SP-Today iframe and keep the card compact beside the slider */
+.dashboard-duo .rate-board{min-width:0;overflow:hidden}
+.lyra-iframe{display:block;width:100%;height:260px;border:0;border-radius:14px;background:#fff}
+.rate-iframe-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;padding-top:7px}
+.rate-iframe-head a{white-space:nowrap}
+@media(max-width:370px){.lyra-iframe{height:230px}}
